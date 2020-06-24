@@ -14,7 +14,7 @@ export default () => {
 
     const handleGetCourses =  useCallback((page) => {
         axios.get(`http://localhost:3333/courses?page=${page}`)
-            .then((response) => {
+            .then( response  => {
                 setCourses(response.data)
                 setTotalPages(response.headers['x-total-pages'])
             })
@@ -27,7 +27,7 @@ export default () => {
         if(window.confirm('Delete this course?')) {
             axios.delete(`http://localhost:3333/courses/${id}`)
                 .then( () => {
-                    setCourses(courses.filter(course => course.id !== id))
+                    handleGetCourses(1)
                 })
                 .catch(() => {
                     console.log('Error')

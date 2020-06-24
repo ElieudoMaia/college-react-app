@@ -1,28 +1,34 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import axios from 'axios'
-import { FiTrash2, FiPlus } from 'react-icons/fi'
+import { FiTrash2, FiPlus, FiEdit, FiEye } from 'react-icons/fi'
+
+import Pagination from '../template/Pagination'
 
 import './css/index.css'
 
 export default () => {
     const history = useHistory()
     const [students, setStudents] = useState([])
+    const [totalPages, setTotalPages] = useState(0)
  
-    useEffect(() => {
-        axios.get('http://localhost:3333/students')
-        .then( response => {
-            setStudents(response.data)
-        })
+    const handleGetStudents =  useCallback((page) => {
+        axios.get(`http://localhost:3333/students?page=${page}`)
+            .then((response) => {
+                setStudents(response.data)
+                setTotalPages(response.headers['x-total-pages'])
+            })
+            .catch(() => {
+                console.log('Error requesting API data')
+            })
     }, [])
 
     function deleteStudent(id) {
 
         if(window.confirm('Do you really want delete all data of this student?')) {
             axios.delete(`http://localhost:3333/students/${id}`)
-                .then(response => {
-                    const filteredStudents = students.filter(student => student.id !== id)
-                    setStudents(filteredStudents)
+                .then( () => {
+                    handleGetStudents(1)
                 })
         }
 
@@ -30,6 +36,14 @@ export default () => {
 
     function navigateToRegister() {
         history.push('/students/register')
+    }
+
+    function handleNavigateToDetail(id) {
+        history.push(`/students/detail/${id}`)
+    }
+
+    function handleNavigateToEdit(id) {
+        history.push(`/students/edit/${id}`)
     }
 
     if(!students) {
@@ -60,12 +74,29 @@ export default () => {
                                         className="trashIcon"
                                         onClick={() => deleteStudent(student.id)}
                                     />
+                                    <FiEdit
+                                        size="1.3rem"
+                                        className="text-primary ml-1 cursor-pointer" 
+                                        onClick={() => handleNavigateToEdit(student.id)}
+                                    />
+                                    <FiEye
+                                        size="1.3rem"
+                                        className="ml-1 cursor-pointer"
+                                        onClick={() => handleNavigateToDetail(student.id) }
+                                    />
                                 </td>
                             </tr>
                         ))
                     }
                 </tbody>
             </table>
+
+            <div className="col col-12">
+                <Pagination
+                    totalPages={totalPages}
+                    callback={handleGetStudents}
+                />
+            </div>
 
             <div className="btnPlus" onClick={() => navigateToRegister()}>
                 <FiPlus />

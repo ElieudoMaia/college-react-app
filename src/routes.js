@@ -7,6 +7,7 @@ import ListOfCourses from './components/course/ListOfCourses'
 import CourseDetail from './components/course/CourseDetail'
 import RegisterStudent from './components/student/RegisterStudent'
 import ListOfStudents from './components/student/ListOfStudents';
+import StudentDetail from './components/student/StudentDetail';
 
 export default () => (
     <Switch>
@@ -16,7 +17,9 @@ export default () => (
         <Route path="/courses/register" exact component={RegisterCourse} />
         <Route path="/courses/detail/:id" exact component={CourseDetail} />
         <Route path="/courses/edit/:id" exact component={RegisterCourse} />
-        <Route path="/students/register" component={RegisterStudent} />
+        <Route path="/students/register" exact component={RegisterStudent} />
+        <Route path="/students/detail/:id" exact component={StudentDetail} />
+        <Route path="/students/edit/:id" exact component={RegisterStudent} />
         <Redirect from="*" to="/" />
     </Switch>
 )

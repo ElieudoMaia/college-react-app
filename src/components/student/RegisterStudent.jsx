@@ -1,25 +1,42 @@
 import React, { useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import axios from 'axios'
 
 export default () => {
     const history = useHistory()
+    const { id } = useParams()
     const [formData, setFormData] = useState({
         name: '',
         registration: 0
     })
     const [courses, setCourses] = useState([])
-    const [selectedCourse, setSelectedCourse] = useState(0)
+    const [selectedCourse, setSelectedCourse] = useState('')
 
     useEffect(() => {
-        axios.get(`http://localhost:3333/courses`)
+        axios.get(`http://localhost:3333/coursesNoPagination`)
+        .then((response) => {
+            setCourses(response.data)
+        })
+        .catch(() => {
+            console.log('Error requesting API data')
+        })
+    }, [])
+
+    useEffect(() => {
+        if(id) {
+            axios.get(`http://localhost:3333/students/${id}`)
             .then((response) => {
-                setCourses(response.data)
+                setFormData({
+                    name: response.data.name,
+                    registration: response.data.registration,
+                })
+                setSelectedCourse(response.data.course_id)
             })
             .catch(() => {
                 console.log('Error requesting API data')
             })
-    }, [])
+        }
+    }, [id])
 
     function handleFormChanges(event) {
         const { name, value } = event.target
@@ -28,10 +45,15 @@ export default () => {
 
     function handleFormSubmit(event) {
         event.preventDefault()
+        
+        if (!selectedCourse) {
+            alert('Select a course')
+            return
+        }
 
-        if (selectedCourse === 0) return
+        const method = id ? 'put' : 'post'
 
-        axios.post('http://localhost:3333/students', {
+        axios[method](`http://localhost:3333/students${ id ? `/${id}` : '' }`, {
             name: formData.name,
             registration: formData.registration,
             course_id: selectedCourse
@@ -53,6 +75,7 @@ export default () => {
                     <div className="form-group">
                         <label htmlFor="name">Student Name</label>
                         <input
+                            value={formData.name}
                             type="text"
                             className="form-control"
                             id="name"
@@ -64,6 +87,7 @@ export default () => {
                     <div className="form-group">
                         <label htmlFor="duration">Registration number</label>
                         <input
+                            value={formData.registration}
                             type="number"
                             className="form-control"
                             id="registration"
@@ -74,14 +98,15 @@ export default () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="course_id">Example select</label>
+                        <label htmlFor="course_id">Course</label>
                         <select
+                            value={selectedCourse}
                             className="form-control"
                             id="course_id"
                             name="course_id"
                             onChange={handleSelectedCourse}
                         >
-                            <option value="0">Selecione um curso</option>
+                            <option value="">Select the course</option>
                             {courses.map(course => (
                                 <option
                                     value={course.id}
@@ -93,7 +118,9 @@ export default () => {
                         </select>
                     </div>
                     <div className="text-right">
-                        <button type="submit" className="btn btn-primary">Register</button>
+                        <button type="submit" className="btn btn-primary">
+                            { id ? 'Update' : 'Register' }
+                        </button>
                     </div>
                 </form>
             </div>
